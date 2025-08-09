@@ -54,10 +54,9 @@ async function ofertasComputrabajo() {
    console.log('Iniciando navegador...');
 
  const browser = await puppeteer.launch({
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  executablePath: process.env.CHROME_PATH || '/app/.apt/usr/bin/google-chrome',
-  headless: true,
-});
+    executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
 
   const page = await browser.newPage();
 

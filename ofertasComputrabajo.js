@@ -1,11 +1,24 @@
 const puppeteer = require('puppeteer');
 const { google } = require('googleapis');
 const fs = require('fs');
+const path = require('path');
 require('dotenv').config({ path: __dirname + '/.env' });
+
+// Crear archivo credenciales.json si no existe, usando variable de entorno codificada en base64
+const credFilePath = path.resolve(__dirname, 'credenciales.json');
+if (!fs.existsSync(credFilePath)) {
+  if (!process.env.GOOGLE_CREDENTIALS_B64) {
+    console.error('❌ Error: La variable de entorno GOOGLE_CREDENTIALS_B64 no está definida.');
+    process.exit(1);
+  }
+  const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS_B64, 'base64').toString('utf8');
+  fs.writeFileSync(credFilePath, credentialsJson);
+  console.log('✅ Archivo credenciales.json creado desde variable de entorno.');
+}
 
 // AUTENTICACIÓN GOOGLE SHEETS
 const auth = new google.auth.GoogleAuth({
-  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+  keyFile: credFilePath, // Cambiamos para usar la ruta del archivo creado
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
@@ -50,7 +63,7 @@ async function guardarEnGoogleSheets(oferta) {
 
 async function ofertasComputrabajo() {
   console.log('Iniciando navegador...');
-  const browser = await puppeteer.launch({ headless: false, slowMo: 50 });
+  const browser = await puppeteer.launch({ headless: true, slowMo: 50 }); // modo headless para producción
   const page = await browser.newPage();
 
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36');

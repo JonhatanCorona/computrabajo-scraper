@@ -1,8 +1,9 @@
 {
-  "name": "nueva-carpeta",
+  "name": "scraper-computrabajo",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "ofertasComputrabajo.js",
   "scripts": {
+    "start": "node ofertasComputrabajo.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

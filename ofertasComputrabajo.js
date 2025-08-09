@@ -122,8 +122,8 @@ async function ofertasComputrabajo() {
   console.log('✅ Scraping finalizado');
 }
 
-cron.schedule('10 16 * * *', () => {
-  console.log('⏰ Ejecutando scraping a las 4:10 PM hora Colombia');
+cron.schedule('45 16 * * *', () => {
+   console.log(`⏰ Ejecutando scraping a las 4:45 PM hora Colombia - Hora actual: ${now}`);
   ofertasComputrabajo();
 }, {
   scheduled: true,

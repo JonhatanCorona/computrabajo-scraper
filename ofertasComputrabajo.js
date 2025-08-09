@@ -54,12 +54,10 @@ async function ofertasComputrabajo() {
    console.log('Iniciando navegador...');
 
   const browser = await puppeteer.launch({
-  executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  headless: 'new',
+  headless: true,
 });
-  console.log('CHROME_PATH:', process.env.CHROME_PATH);
-  console.log('Ruta por defecto usada:', '/usr/bin/google-chrome');
+
   const page = await browser.newPage();
 
   await page.setUserAgent(

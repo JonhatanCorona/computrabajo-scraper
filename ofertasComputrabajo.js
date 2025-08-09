@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const { google } = require('googleapis');
 require('dotenv').config({ path: __dirname + '/.env' });
 
@@ -53,9 +53,8 @@ async function guardarEnGoogleSheets(oferta) {
 async function ofertasComputrabajo() {
   console.log('Iniciando navegador...');
   const browser = await puppeteer.launch({
-  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/app/.apt/usr/bin/google-chrome',
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  headless: true
+  executablePath: process.env.CHROME_BIN || '/app/.apt/usr/bin/google-chrome',
+  args: ['--no-sandbox', '--disable-setuid-sandbox']
 });
   const page = await browser.newPage();
 

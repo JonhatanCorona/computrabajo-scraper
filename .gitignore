@@ -1,0 +1,15 @@
+# Ignorar archivo de credenciales
+credenciales.json
+
+# Variables de entorno
+.env
+
+# Node modules
+node_modules/
+
+# Archivos de log
+*.log
+
+# Directorios de producción/build
+dist/
+build/

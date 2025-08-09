@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
+const cron = require('node-cron');
 require('dotenv').config({ path: __dirname + '/.env' });
 
 // Crear archivo credenciales.json si no existe, usando variable de entorno codificada en base64
@@ -130,4 +131,8 @@ async function ofertasComputrabajo() {
   console.log('✅ Scraping finalizado');
 }
 
-ofertasComputrabajo();
+cron.schedule('1 2 * * *', () => {
+  console.log('Ejecutando scraping programado a las 12:00 PM');
+  ofertasComputrabajo();
+});
+

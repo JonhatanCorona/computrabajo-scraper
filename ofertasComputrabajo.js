@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer');
 const { google } = require('googleapis');
-const cron = require('node-cron');
 require('dotenv').config({ path: __dirname + '/.env' });
 
 // Decodificar las credenciales base64 desde la variable de entorno
@@ -122,11 +121,5 @@ async function ofertasComputrabajo() {
   console.log('✅ Scraping finalizado');
 }
 
-cron.schedule('49 16 * * *', () => {
-   console.log(`⏰ Ejecutando scraping a las 4:45 PM hora Colombia - Hora actual: ${now}`);
   ofertasComputrabajo();
-}, {
-  scheduled: true,
-  timezone: "America/Bogota"
-});
 

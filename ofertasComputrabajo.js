@@ -51,9 +51,10 @@ async function guardarEnGoogleSheets(oferta) {
 }
 
 async function ofertasComputrabajo() {
-  console.log('Iniciando navegador...');
+   console.log('Iniciando navegador...');
+   console.log('CHROME_PATH:', process.env.CHROME_PATH);
    const browser = await puppeteer.launch({
-  executablePath: process.env.CHROME_PATH || '/app/.apt/usr/bin/google-chrome',
+  executablePath: process.env.CHROME_PATH,
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
 });
   const page = await browser.newPage();

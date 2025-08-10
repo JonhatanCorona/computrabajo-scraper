@@ -57,7 +57,7 @@ async function ofertasComputrabajo() {
   const browser = await puppeteer.launch({
   executablePath: process.env.GOOGLE_CHROME_BIN || '/app/.chrome-for-testing/chrome-linux64/chrome',
   args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
-  headless: false, // cambiar a false
+  headless: 'new', // cambiar a false
   slowMo: 50,
 });
 

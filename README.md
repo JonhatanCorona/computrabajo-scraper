@@ -68,7 +68,9 @@ Se recomienda programar la ejecución automática (por ejemplo, con cronjobs o e
 Variables de entorno
 
 Variable	Descripción
-GOOGLE_APPLICATION_CREDENTIALS	Ruta al archivo JSON con credenciales de Google Cloud
+
+GOOGLE_APPLICATION_CREDENTIALS	Ruta local al archivo JSON con credenciales (para desarrollo local)
+GOOGLE_CREDENTIALS_B64	Credenciales codificadas en Base64 (para despliegue en Heroku)
 SHEET_ID	ID de la hoja de cálculo de Google Sheets
 
 Estructura del proyecto
@@ -78,4 +80,5 @@ computrabajo-scraper/
 ├── ofertasComputrabajo.js
 ├── package-lock.json
 ├── package.json
-└── README.md
+├── README.md
+├── runComputrabajo.js

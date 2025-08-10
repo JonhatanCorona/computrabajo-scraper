@@ -1,16 +1,3 @@
-const puppeteer = require('puppeteer-core');
-const { google } = require('googleapis');
-require('dotenv').config();
-
-function limpiarTexto(texto) {
-  if (!texto) return '';
-  return texto.normalize('NFC').replace(/\s+/g, ' ').trim();
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 async function guardarEnGoogleSheets(oferta, client) {
   const sheets = google.sheets({ version: 'v4', auth: client });
 
@@ -43,6 +30,12 @@ async function ofertasComputrabajo() {
   });
 
   const client = await auth.getClient();
+
+  // Verificamos si ya se ejecutó hoy
+  if (await yaEjecutadoHoy(client)) {
+    console.log('ℹ️ Ya se ejecutó hoy, saliendo sin hacer scraping.');
+    return;
+  }
 
   console.log('Iniciando navegador...');
   const browser = await puppeteer.launch({
@@ -126,6 +119,10 @@ async function ofertasComputrabajo() {
   }
 
   await browser.close();
+
+  // Marcamos que ya ejecutamos hoy
+  await marcarEjecutadoHoy(client);
+
   console.log('✅ Scraping finalizado');
 }
 

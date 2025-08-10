@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');  // usar puppeteer-core con buildpack chrome-for-testing
 const { google } = require('googleapis');
 require('dotenv').config({ path: __dirname + '/.env' });
 
@@ -51,11 +51,11 @@ async function guardarEnGoogleSheets(oferta) {
 }
 
 async function ofertasComputrabajo() {
-   console.log('Iniciando navegador...');
+  console.log('Iniciando navegador...');
 
- const browser = await puppeteer.launch({
-    executablePath: process.env.GOOGLE_CHROME_BIN || '/usr/bin/google-chrome',
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  const browser = await puppeteer.launch({
+    executablePath: process.env.GOOGLE_CHROME_BIN || '/app/.chrome-for-testing/chrome-linux64/chrome',
+    args: ['--no-sandbox', '--headless', '--disable-gpu', '--disable-setuid-sandbox'],
   });
 
   const page = await browser.newPage();
@@ -126,5 +126,4 @@ async function ofertasComputrabajo() {
   console.log('✅ Scraping finalizado');
 }
 
-  ofertasComputrabajo();
-
+ofertasComputrabajo();

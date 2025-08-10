@@ -1,3 +1,43 @@
+const puppeteer = require('puppeteer-core');
+const { google } = require('googleapis');
+require('dotenv').config();
+
+function limpiarTexto(texto) {
+  if (!texto) return '';
+  return texto.normalize('NFC').replace(/\s+/g, ' ').trim();
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function yaEjecutadoHoy(client) {
+  const sheets = google.sheets({ version: 'v4', auth: client });
+  try {
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.SHEET_ID,
+      range: 'Control!A1',
+    });
+    const fechaUltima = res.data.values ? res.data.values[0][0] : null;
+    const hoy = new Date().toISOString().slice(0, 10);
+    return fechaUltima === hoy;
+  } catch (error) {
+    // Si no existe la celda o la hoja, asumimos que no ha ejecutado
+    return false;
+  }
+}
+
+async function marcarEjecutadoHoy(client) {
+  const sheets = google.sheets({ version: 'v4', auth: client });
+  const hoy = new Date().toISOString().slice(0, 10);
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: process.env.SHEET_ID,
+    range: 'Control!A1',
+    valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [[hoy]] },
+  });
+}
+
 async function guardarEnGoogleSheets(oferta, client) {
   const sheets = google.sheets({ version: 'v4', auth: client });
 
@@ -31,11 +71,11 @@ async function ofertasComputrabajo() {
 
   const client = await auth.getClient();
 
-  // Verificamos si ya se ejecutó hoy
-  if (await yaEjecutadoHoy(client)) {
+    if (await yaEjecutadoHoy(client)) {
     console.log('ℹ️ Ya se ejecutó hoy, saliendo sin hacer scraping.');
     return;
   }
+
 
   console.log('Iniciando navegador...');
   const browser = await puppeteer.launch({
@@ -118,11 +158,9 @@ async function ofertasComputrabajo() {
     }
   }
 
-  await browser.close();
-
-  // Marcamos que ya ejecutamos hoy
   await marcarEjecutadoHoy(client);
 
+  await browser.close();
   console.log('✅ Scraping finalizado');
 }
 

@@ -29,14 +29,14 @@ async function guardarEnGoogleSheets(oferta) {
   const client = await auth.getClient();
   const sheets = google.sheets({ version: 'v4', auth: client });
 
-  // 1. Leer columna A para contar filas ocupadas (suponiendo que ahí siempre hay dato si la fila está ocupada)
+  // 1. Leer columna A para contar filas ocupadas
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: 'Hoja 2!A:A',
   });
 
   const filasOcupadas = response.data.values ? response.data.values.length : 0;
-  const filaSiguiente = filasOcupadas + 1; // La próxima fila vacía
+  const filaSiguiente = filasOcupadas + 1;
 
   // 2. Escribir en la fila siguiente sin borrar nada
   await sheets.spreadsheets.values.update({
@@ -53,13 +53,18 @@ async function guardarEnGoogleSheets(oferta) {
 
 async function ofertasComputrabajo() {
   console.log('Iniciando navegador...');
+
   const browser = await puppeteer.launch({
     executablePath: process.env.GOOGLE_CHROME_BIN || '/app/.chrome-for-testing/chrome-linux64/chrome',
-    args: ['--no-sandbox', '--headless', '--disable-gpu', '--disable-setuid-sandbox'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--headless'],
+    slowMo: 50,
   });
+
   const page = await browser.newPage();
 
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36');
+  await page.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+  );
 
   const urlBusqueda = 'https://co.computrabajo.com/trabajo-de-desarrollador-en-bogota-dc?pubdate=1';
   console.log(`Abriendo página: ${urlBusqueda}`);
@@ -98,6 +103,9 @@ async function ofertasComputrabajo() {
 
       await sleep(1000);
 
+      // Debug: guardar screenshot para ver contenido en producción
+      // await ofertaPage.screenshot({ path: `debug-${Date.now()}.png` });
+
       const detalle = await ofertaPage.evaluate(() => {
         const titulo = document.querySelector('h1.fwB.fs24.mb5.box_detail')?.innerText || '';
         const descripcion = document.querySelector('div.mb40.pb40.bb1[div-link="oferta"]')?.innerText || '';
@@ -110,7 +118,7 @@ async function ofertasComputrabajo() {
       if (!detalle.titulo) {
         console.log('⚠️ Título vacío, se omite esta oferta.');
       } else {
-        await guardarEnGoogleSheets(detalle); // GUARDAR EN GOOGLE SHEETS
+        await guardarEnGoogleSheets(detalle);
       }
     } catch (error) {
       console.error(`❌ Error procesando oferta ${link}:`, error);

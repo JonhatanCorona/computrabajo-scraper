@@ -94,39 +94,56 @@ async function ofertasComputrabajo() {
 
   console.log(`🔗 Ofertas encontradas: ${links.length}`);
 
-  for (const link of links) {
-    console.log(`📄 Abriendo oferta: ${link}`);
-    let ofertaPage;
-    try {
-      ofertaPage = await browser.newPage();
-      await ofertaPage.goto(link, { waitUntil: 'networkidle2' });
+for (const link of links) {
+  console.log(`📄 Abriendo oferta: ${link}`);
+  let ofertaPage;
+  try {
+    ofertaPage = await browser.newPage();
+    await ofertaPage.goto(link, { waitUntil: 'networkidle2' });
 
-      await sleep(1000);
+    await sleep(1000);
 
-      // Debug: guardar screenshot para ver contenido en producción
-      // await ofertaPage.screenshot({ path: `debug-${Date.now()}.png` });
+    // Opcional: captura screenshot para debug (descomenta si quieres)
+    // await ofertaPage.screenshot({ path: `debug-${Date.now()}.png` });
 
-      const detalle = await ofertaPage.evaluate(() => {
-        const titulo = document.querySelector('h1.fwB.fs24.mb5.box_detail')?.innerText || '';
-        const descripcion = document.querySelector('div.mb40.pb40.bb1[div-link="oferta"]')?.innerText || '';
-        return { titulo, textoCompleto: descripcion, link: window.location.href };
-      });
+    const detalle = await ofertaPage.evaluate(() => {
+      const tituloElem = document.querySelector('h1.fwB.fs24.mb5.box_detail');
+      const descripcionElem = document.querySelector('div.mb40.pb40.bb1[div-link="oferta"]');
 
-      detalle.titulo = limpiarTexto(detalle.titulo);
-      detalle.textoCompleto = limpiarTexto(detalle.textoCompleto);
+      // Debug: devolver si encontró elementos y sus textos brutos
+      return {
+        tituloEncontrado: !!tituloElem,
+        tituloTexto: tituloElem ? tituloElem.innerText : null,
+        descripcionEncontrada: !!descripcionElem,
+        descripcionTexto: descripcionElem ? descripcionElem.innerText : null,
+        link: window.location.href
+      };
+    });
 
-      if (!detalle.titulo) {
-        console.log('⚠️ Título vacío, se omite esta oferta.');
-      } else {
-        await guardarEnGoogleSheets(detalle);
-      }
-    } catch (error) {
-      console.error(`❌ Error procesando oferta ${link}:`, error);
-    } finally {
-      if (ofertaPage) await ofertaPage.close();
+    console.log('DEBUG detalle scrapeado:', detalle);
+
+    if (!detalle.tituloTexto) {
+      // Para entender si el selector falló o el contenido es vacío
+      const htmlParcial = await ofertaPage.content();
+      console.log('HTML parcial oferta (primeros 1000 caracteres):', htmlParcial.slice(0, 1000));
+      console.log('⚠️ Título vacío o selector no encontrado, se omite esta oferta.');
+      continue;
     }
-  }
 
+    const oferta = {
+      titulo: limpiarTexto(detalle.tituloTexto),
+      textoCompleto: limpiarTexto(detalle.descripcionTexto),
+      link: detalle.link,
+    };
+
+    await guardarEnGoogleSheets(oferta);
+
+  } catch (error) {
+    console.error(`❌ Error procesando oferta ${link}:`, error);
+  } finally {
+    if (ofertaPage) await ofertaPage.close();
+  }
+}
   await browser.close();
   console.log('✅ Scraping finalizado');
 }

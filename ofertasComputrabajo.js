@@ -55,12 +55,20 @@ async function ofertasComputrabajo() {
   console.log('Iniciando navegador...');
 
   const browser = await puppeteer.launch({
-    executablePath: process.env.GOOGLE_CHROME_BIN || '/app/.chrome-for-testing/chrome-linux64/chrome',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--headless'],
-    slowMo: 50,
-  });
+  executablePath: process.env.GOOGLE_CHROME_BIN || '/app/.chrome-for-testing/chrome-linux64/chrome',
+  args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
+  headless: false, // cambiar a false
+  slowMo: 50,
+});
 
   const page = await browser.newPage();
+
+  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36');
+  await page.setExtraHTTPHeaders({
+  'Accept-Language': 'es-CO,es;q=0.9,en;q=0.8',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+});
 
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36');
 
@@ -95,21 +103,14 @@ async function ofertasComputrabajo() {
 
 for (const link of links) {
   console.log(`📄 Abriendo oferta: ${link}`);
-  let ofertaPage;
   try {
-    ofertaPage = await browser.newPage();
-    await ofertaPage.goto(link, { waitUntil: 'networkidle2' });
+    await page.goto(link, { waitUntil: 'networkidle2' });
+    await sleep(2000); // espera un poco más
 
-    await sleep(1000);
-
-    // Opcional: captura screenshot para debug (descomenta si quieres)
-    // await ofertaPage.screenshot({ path: `debug-${Date.now()}.png` });
-
-    const detalle = await ofertaPage.evaluate(() => {
+    const detalle = await page.evaluate(() => {
       const tituloElem = document.querySelector('h1.fwB.fs24.mb5.box_detail');
       const descripcionElem = document.querySelector('div.mb40.pb40.bb1[div-link="oferta"]');
 
-      // Debug: devolver si encontró elementos y sus textos brutos
       return {
         tituloEncontrado: !!tituloElem,
         tituloTexto: tituloElem ? tituloElem.innerText : null,

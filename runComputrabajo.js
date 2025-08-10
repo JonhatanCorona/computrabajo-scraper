@@ -4,7 +4,7 @@ const ofertasComputrabajo = require('./ofertasComputrabajo');
   try {
     await ofertasComputrabajo();
   } catch (error) {
-    console.error('Error en la ejecución:', error);
+    console.error('Error ejecutando scraping:', error);
     process.exit(1);
   }
-})()
+})();

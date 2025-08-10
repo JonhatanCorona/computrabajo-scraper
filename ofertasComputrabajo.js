@@ -1,17 +1,18 @@
-const puppeteer = require('puppeteer-core');  // usar puppeteer-core con buildpack chrome-for-testing
+const puppeteer = require('puppeteer-core');
 const { google } = require('googleapis');
+const fs = require('fs');
 require('dotenv').config({ path: __dirname + '/.env' });
 
 // Decodificar las credenciales base64 desde la variable de entorno
 const credentials = JSON.parse(Buffer.from(process.env.GOOGLE_CREDENTIALS_B64, 'base64').toString('utf-8'));
 
-// Crear auth con las credenciales decodificadas
+// AUTENTICACIÓN GOOGLE SHEETS
 const auth = new google.auth.GoogleAuth({
-  credentials,
+  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
-const spreadsheetId = process.env.SHEET_ID;
+const spreadsheetId = process.env.SHEET_ID; // <---- Cambia esto
 
 // Función para limpiar texto y forzar UTF-8
 function limpiarTexto(texto) {
@@ -23,21 +24,21 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Guardar datos en Google Sheets
+// Guardar en Google Sheets
 async function guardarEnGoogleSheets(oferta) {
   const client = await auth.getClient();
   const sheets = google.sheets({ version: 'v4', auth: client });
 
-  // Leer filas ocupadas en columna A para saber dónde escribir
+  // 1. Leer columna A para contar filas ocupadas (suponiendo que ahí siempre hay dato si la fila está ocupada)
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: 'Hoja 2!A:A',
   });
 
   const filasOcupadas = response.data.values ? response.data.values.length : 0;
-  const filaSiguiente = filasOcupadas + 1;
+  const filaSiguiente = filasOcupadas + 1; // La próxima fila vacía
 
-  // Escribir datos en la siguiente fila vacía
+  // 2. Escribir en la fila siguiente sin borrar nada
   await sheets.spreadsheets.values.update({
     spreadsheetId,
     range: `Hoja 2!A${filaSiguiente}`,
@@ -52,17 +53,13 @@ async function guardarEnGoogleSheets(oferta) {
 
 async function ofertasComputrabajo() {
   console.log('Iniciando navegador...');
-
   const browser = await puppeteer.launch({
     executablePath: process.env.GOOGLE_CHROME_BIN || '/app/.chrome-for-testing/chrome-linux64/chrome',
     args: ['--no-sandbox', '--headless', '--disable-gpu', '--disable-setuid-sandbox'],
   });
-
   const page = await browser.newPage();
 
-  await page.setUserAgent(
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
-  );
+  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36');
 
   const urlBusqueda = 'https://co.computrabajo.com/trabajo-de-desarrollador-en-bogota-dc?pubdate=1';
   console.log(`Abriendo página: ${urlBusqueda}`);
@@ -113,7 +110,7 @@ async function ofertasComputrabajo() {
       if (!detalle.titulo) {
         console.log('⚠️ Título vacío, se omite esta oferta.');
       } else {
-        await guardarEnGoogleSheets(detalle);
+        await guardarEnGoogleSheets(detalle); // GUARDAR EN GOOGLE SHEETS
       }
     } catch (error) {
       console.error(`❌ Error procesando oferta ${link}:`, error);
